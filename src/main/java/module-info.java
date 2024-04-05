@@ -3,6 +3,6 @@ module dev.thekarancode.vcardel {
     requires javafx.fxml;
 
 
-    opens dev.thekarancode.vCardelApp to javafx.fxml;
-    exports dev.thekarancode.vCardelApp;
+    opens dev.thekarancode to javafx.fxml;
+    exports dev.thekarancode;
 }
