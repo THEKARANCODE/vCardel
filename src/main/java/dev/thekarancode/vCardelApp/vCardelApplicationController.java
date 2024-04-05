@@ -4,6 +4,7 @@ package dev.thekarancode.vCardelApp;
 import dev.thekarancode.coreClasses.vCard;
 import dev.thekarancode.coreClasses.vCardFile;
 import dev.thekarancode.coreClasses.vCardNative;
+import dev.thekarancode.customExceptions.vCardNotAddedException;
 import dev.thekarancode.logUtilityClasses.Log;
 import dev.thekarancode.logUtilityClasses.LogCategory;
 import dev.thekarancode.utilityClasses.Handyman;
@@ -219,9 +220,11 @@ public class vCardelApplicationController implements Initializable {
     void create_vCard_File_button_MouseClicked(MouseEvent event) {
         try {
             vCardFile.crete_vCardFile();
-            logger.log(new Log(LogCategory.INFO, "File created successfully, at " + vCardFile.getFileDirectory() + " & File Name: " + vCardFile.getFileName(), ""));
-        } catch (IOException e) {
-            logger.log(new Log(LogCategory.ERROR, "Error during file creation: " + e.getMessage(), e.toString()));
+            String successMessage = "Successfully created file at: " + vCardFile.getFileDirectory() + " with file name: \"" + vCardFile.getFileName() + "\"";
+            logger.log(new Log(LogCategory.INFO, successMessage, ""));
+        } catch (IOException | vCardNotAddedException e) {
+            String errorMessage = "Error occurred during file creation: " + e.getMessage();
+            logger.log(new Log(LogCategory.ERROR, errorMessage, e.toString()));
         }
     }
 
@@ -256,6 +259,9 @@ public class vCardelApplicationController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         logger = new vCardelApplicationLogger(appLog);
+
+        fileName.setText(vCardFile.getFileName());
+        fileDirectory.setText(vCardFile.getFileDirectory());
 
         setTextFormattersByStyleClass(jfx.getAllDescendentList(mainPane));
 
@@ -371,10 +377,10 @@ public class vCardelApplicationController implements Initializable {
             if (!newVal) {
                 String textFieldValue = textField.getText();
                 if (textFieldValue.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")) {
-                    System.out.println(textFieldValue + " is a valid email format.");
+                    logger.log(new Log(LogCategory.INFO, textFieldValue + " is a valid email format.", ""));
                 } else {
                     textField.clear();
-                    System.err.println(textFieldValue + " is not a valid email format.");
+                    logger.log(new Log(LogCategory.ERROR, textFieldValue + " is not a valid email format.", ""));
                 }
             }
         });
@@ -384,7 +390,14 @@ public class vCardelApplicationController implements Initializable {
     public void addFocusedPropertyListener_FileName(TextField textField) {
         textField.focusedProperty().addListener((o, oldVal, newVal) -> {
             if (!newVal) {
-                vCardFile.setFileName(textField.getText());
+                String textFieldValue = textField.getText();
+                if (!textFieldValue.isBlank()) {
+                    logger.log(new Log(LogCategory.INFO, ("\"" + textFieldValue + "\" is set as file name."), ""));
+                    vCardFile.setFileName(textField.getText());
+                } else {
+                    fileName.setText(vCardFile.getFileName());
+                    logger.log(new Log(LogCategory.WARNING, ("Please provide a valid file name. Resetting the file name to: \"" + vCardFile.getFileName() + "\""), ""));
+                }
             }
         });
         System.out.println("Task completed, Focused property listener have been added for file Name : Text Field ID - " + textField.getId());

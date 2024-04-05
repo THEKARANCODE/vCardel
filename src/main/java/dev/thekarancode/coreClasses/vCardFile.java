@@ -1,5 +1,7 @@
 package dev.thekarancode.coreClasses;
 
+import dev.thekarancode.customExceptions.vCardNotAddedException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +17,7 @@ public class vCardFile {
     /*Default File Properties*/
     public static final String defaultFileName = "vCardFile";
     private static final String defaultFileExtension = ".vcf";
-    private static final Path defaultFileDirectory = Paths.get("vCardel Output");
+    private static final Path defaultFileDirectory = Paths.get(System.getProperty("user.home")).resolve("Downloads/vCardel Output");
     /*File Content*/
     public final ArrayList<vCard> vCardList = new ArrayList<>();
     /*File Properties*/
@@ -54,6 +56,7 @@ public class vCardFile {
         return timeStampEnabled;
     }
 
+
     /*Setters*/
     public void setFileName(String fileName) {
         this.fileName = fileName;
@@ -73,6 +76,9 @@ public class vCardFile {
     }
 
     public void crete_vCardFile() throws IOException {
+        if (vCardList.isEmpty()) {
+            throw new vCardNotAddedException("There is no vCard added in the file.");
+        }
         createFile();
 
         StringBuilder vCardFileContent = new StringBuilder();
@@ -123,7 +129,7 @@ public class vCardFile {
         do {
             attemptNum++;
             fileName = attemptNum > 1 ? originalFileName + " {" + (attemptNum - 1) + "}" : fileName;
-            filePath = Paths.get(fileDirectory + "\\" + fileName + defaultFileExtension);
+            filePath = Paths.get(fileDirectory + "\\" + (fileName.isBlank() ? defaultFileName : fileName) + defaultFileExtension);
 
             System.out.println("Attempt number " + attemptNum + " to create file: " + filePath.toAbsolutePath() + ".");
         } while (Files.exists(filePath));

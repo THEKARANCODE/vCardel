@@ -8,5 +8,6 @@ public class Sandbox {
     public static void main(String[] args) {
 //        vCardelApplicationLogger vCardelApplicationLogger = new vCardelApplicationLogger();
         System.out.println( new Log(LogCategory.INFO, "Processing data", "Data processing started."));
+        System.out.println(System.getProperty("user.home"));
     }
 }
