@@ -337,9 +337,10 @@ public class vCardelApplicationController implements Initializable {
 
     public void addFocusedPropertyListener_ValidateDate(TextField textField) {
         textField.focusedProperty().addListener((o, oldVal, newVal) -> {
-            if (!newVal) {
 
-                String textFieldValue = textField.getText();
+            String textFieldValue = textField.getText();
+
+            if (!newVal && !textFieldValue.isBlank()) {
 
                 if (textFieldValue.matches("[0-9]{2}/[0-9]{2}(/[0-9]{4})?")) {
 
@@ -374,8 +375,11 @@ public class vCardelApplicationController implements Initializable {
 
     public void addFocusedPropertyListener_ValidateEmail(TextField textField) {
         textField.focusedProperty().addListener((o, oldVal, newVal) -> {
-            if (!newVal) {
-                String textFieldValue = textField.getText();
+
+            String textFieldValue = textField.getText();
+
+            if (!newVal && !textFieldValue.isBlank()) {
+
                 if (textFieldValue.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")) {
                     logger.log(new Log(LogCategory.INFO, textFieldValue + " is a valid email format.", ""));
                 } else {
