@@ -169,7 +169,9 @@ public class vCardelApplicationController implements Initializable {
 
     @FXML
     void add_To_vCard_File_Button_MouseClicked(MouseEvent event) {
+
         vCardNative vCardNative = new vCardNative();
+
         vCardNative.setIdentificationDetails(prefix.getText(), firstName.getText(), middleName.getText(), lastName.getText(), suffix.getText(), nickname.getText(), Handyman.toLocaleDateObj(dob.getText()));
         vCardNative.setCommunicationDetails(preferredMobileNumber.getText(), mobileNumberI.getText(), mobileNumberII.getText(), homeTelephoneNumber.getText(), personalEmailAddress.getText(), workTelephoneNumber.getText(), workEmailAddress.getText());
         vCardNative.setAddressDetails(homeStreetAddress.getText(), homeCity.getText(), homeState.getText(), homePostalCode.getText(), homeCountry.getText(), workStreetAddress.getText(), workCity.getText(), workState.getText(), workPostalCode.getText(), workCountry.getText());
@@ -178,7 +180,9 @@ public class vCardelApplicationController implements Initializable {
         vCardNative.setUrl(website.getText());
         vCardNative.setLabels(labels.getText().split(","));
         vCardNative.setGender(gender.getText());
+
         vCardFile.add_vCard(new vCard(vCardNative));
+
         logger.log(new Log(LogCategory.INFO, "vCard added to vCard File Successfully.", ""));
     }
 
