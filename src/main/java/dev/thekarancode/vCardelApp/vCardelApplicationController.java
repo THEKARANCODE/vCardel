@@ -342,7 +342,7 @@ public class vCardelApplicationController implements Initializable {
 
             if (!newVal && !textFieldValue.isBlank()) {
 
-                if (textFieldValue.matches("[0-9]{2}/[0-9]{2}(/[0-9]{4})?")) {
+                if (Handyman.isValidDateFormat(textFieldValue)) {
 
                     String[] dobSegStrArray = textFieldValue.split("/");
                     int[] dobSegIntArray = new int[dobSegStrArray.length];
@@ -380,7 +380,7 @@ public class vCardelApplicationController implements Initializable {
 
             if (!newVal && !textFieldValue.isBlank()) {
 
-                if (textFieldValue.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$")) {
+                if (Handyman.isValidEmailFormat(textFieldValue)) {
                     logger.log(new Log(LogCategory.INFO, textFieldValue + " is a valid email format.", ""));
                 } else {
                     textField.clear();
