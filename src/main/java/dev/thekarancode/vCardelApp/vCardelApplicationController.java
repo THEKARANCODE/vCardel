@@ -169,6 +169,9 @@ public class vCardelApplicationController implements Initializable {
 
     @FXML
     void add_To_vCard_File_Button_MouseClicked(MouseEvent event) {
+
+        simulateFocusedPropertyChanged(personalEmailAddress);
+
         vCardNative vCardNative = new vCardNative();
         vCardNative.setIdentificationDetails(prefix.getText(), firstName.getText(), middleName.getText(), lastName.getText(), suffix.getText(), nickname.getText(), Handyman.toLocaleDateObj(dob.getText()));
         vCardNative.setCommunicationDetails(preferredMobileNumber.getText(), mobileNumberI.getText(), mobileNumberII.getText(), homeTelephoneNumber.getText(), personalEmailAddress.getText(), workTelephoneNumber.getText(), workEmailAddress.getText());
@@ -401,6 +404,12 @@ public class vCardelApplicationController implements Initializable {
             }
         });
         System.out.println("Task completed, Focused property listener have been added for file Name : Text Field ID - " + textField.getId());
+    }
+
+    /*Utility Methods*/
+    private void simulateFocusedPropertyChanged(TextField textField) {
+        note.requestFocus();
+        textField.requestFocus();
     }
 
 }
