@@ -159,4 +159,12 @@ public class Handyman {
 
         return dateObj;
     }
+
+    public static boolean isValidEmailFormat(String email) {
+        return email.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
+    }
+
+    public static boolean isValidDateFomat(String date) {
+        return date.matches("[0-9]{2}/[0-9]{2}(/[0-9]{4})?");
+    }
 }
