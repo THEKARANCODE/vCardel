@@ -1,80 +1,122 @@
 package dev.thekarancode.utilityClasses;
 
+import dev.thekarancode.customExceptions.InvalidDateException;
+import dev.thekarancode.customExceptions.InvalidDateFormatException;
+import dev.thekarancode.customExceptions.InvalidEmailFormatException;
 import dev.thekarancode.customExceptions.UnsupportedCharacterException;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class Handyman {
-    private static final Set<Character> supportedCharacters = new HashSet<>();
 
-    static {
-        for (char ch = 'A'; ch <= 'Z'; ch++) {
-            supportedCharacters.add(ch);
-        }
-        for (char ch = 'a'; ch <= 'z'; ch++) {
-            supportedCharacters.add(ch);
-        }
-        for (char ch = '0'; ch <= '9'; ch++) {
-            supportedCharacters.add(ch);
-        }
-        supportedCharacters.add(' ');
-        supportedCharacters.add('~');
-        supportedCharacters.add('!');
-        supportedCharacters.add('@');
-        supportedCharacters.add('#');
-        supportedCharacters.add('$');
-        supportedCharacters.add('%');
-        supportedCharacters.add('^');
-        supportedCharacters.add('&');
-        supportedCharacters.add('*');
-        supportedCharacters.add('(');
-        supportedCharacters.add(')');
-        supportedCharacters.add('_');
-        supportedCharacters.add('+');
-        supportedCharacters.add('-');
-        supportedCharacters.add('=');
-        supportedCharacters.add('`');
-        supportedCharacters.add('{');
-        supportedCharacters.add('}');
-        supportedCharacters.add('|');
-        supportedCharacters.add(';');
-        supportedCharacters.add(':');
-        supportedCharacters.add('\'');
-        supportedCharacters.add('/');
-        supportedCharacters.add('?');
-        supportedCharacters.add('<');
-        supportedCharacters.add('>');
-        supportedCharacters.add(',');
-        supportedCharacters.add('.');
-        supportedCharacters.add('[');
-        supportedCharacters.add(']');
-        supportedCharacters.add('\\');
-        supportedCharacters.add('"');
-    }
+    /*Date Validation Methodsd*/
+    private static final Pattern DATE_PATTERN = Pattern.compile("[0-9]{2}/[0-9]{2}(/[0-9]{4})?");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
+    private static final Set<Character> supportedCharacters = new HashSet<>();
 
     public static boolean isValidDate(int dayOfMonth, int month, int year) {
         try {
             LocalDate date = LocalDate.of(year, month, dayOfMonth);
             return true;
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch (DateTimeException e) {
             return false;
         }
     }
 
     public static boolean isValidDate(int dayOfMonth, int month) {
-        int YYYY = 2000; /*Chose 2000 for leap year; simplifies validation to check day and month, including February 29.*/
+        int year = 2000; /*Chose 2000 for leap year; simplifies validation to check day and month, including February 29.*/
         try {
-            LocalDate date = LocalDate.of(YYYY, month, dayOfMonth);
+            LocalDate date = LocalDate.of(year, month, dayOfMonth);
             return true;
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+        } catch (DateTimeException e) {
             return false;
         }
     }
 
+    public static boolean isValidDateFormat(String dateString) {
+        return DATE_PATTERN.matcher(dateString).matches();
+    }
+
+    public static void dateValidator(String dateString) throws InvalidDateFormatException, InvalidDateException {
+
+        if (dateString == null) {
+            throw new InvalidDateFormatException("Date string cannot be null or empty. Expected formats: DD/MM or DD/MM/YYYY.");
+        }
+
+        if (dateString.isBlank()) {
+            return;
+        }
+
+        if (!isValidDateFormat(dateString)) {
+            throw new InvalidDateFormatException("Invalid date format: " + dateString + ". Expected formats: DD/MM or DD/MM/YYYY.");
+        }
+
+        String[] dateStringElements = dateString.split("/");
+
+        int dayOfMonth = Integer.parseInt(dateStringElements[0]);
+        int month = Integer.parseInt(dateStringElements[1]);
+        int year;
+
+        if (dateStringElements.length == 3) {
+            year = Integer.parseInt(dateStringElements[2]);
+            dateValidator(dayOfMonth, month, year);
+        } else {
+            dateValidator(dayOfMonth, month);
+        }
+    }
+
+    public static void dateValidator(int dayOfMonth, int month, int year) throws InvalidDateException {
+        try {
+            LocalDate date = LocalDate.of(year, month, dayOfMonth);
+        } catch (DateTimeException e) {
+            throw new InvalidDateException("Invalid Date: " + dayOfMonth + "/" + month + "/" + year + ", Explanation: " + e.getMessage() + ".");
+        }
+    }
+
+    public static void dateValidator(int dayOfMonth, int month) throws InvalidDateException {
+        int year = 2000; /*Chose 2000 for leap year; simplifies validation to check day and month, including February 29.*/
+        try {
+            LocalDate date = LocalDate.of(2000, month, dayOfMonth);
+        } catch (DateTimeException e) {
+            throw new InvalidDateException("Invalid Date: " + dayOfMonth + "/" + month + ", Explanation: " + e.getMessage() + ".");
+        }
+    }
+
+    public static LocalDate parseLocalDate(String dateString) throws InvalidDateFormatException, InvalidDateException {
+
+        dateValidator(dateString);
+
+        String[] dateStringElements = dateString.split("/");
+
+        int dayOfMonth = Integer.parseInt(dateStringElements[0]);
+        int month = Integer.parseInt(dateStringElements[1]);
+        int year = dateStringElements.length == 3 ? Integer.parseInt(dateStringElements[0]) : 2000;
+
+        return LocalDate.of(year, month, dayOfMonth);
+    }
+
+
+    /*Email Validation Methods*/
+    public static boolean isValidEmailFormat(String email) {
+        return EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    public static void emailValidator(String email) throws InvalidEmailFormatException {
+        if (email.isBlank()) {
+            return;
+        }
+        if (!isValidEmailFormat(email)) {
+            throw new InvalidEmailFormatException("Invalid email address format: " + email + ".", email);
+        }
+    }
+
+
+    /*String Utility Methods*/
     public static String foldLine(String inputString, int maxLength) throws UnsupportedCharacterException {
         if (hasUnsupportedChar(inputString)) {
             String unsupportedCharacters = getUnsupportedChars(inputString);
@@ -131,40 +173,57 @@ public class Handyman {
         return capitalize ? inputString.toUpperCase() : inputString;
     }
 
-    public static LocalDate toLocaleDateObj(String date) {
-        LocalDate dateObj = null;
-        if (!date.matches("[0-9]{2}/[0-9]{2}(/[0-9]{4})?")) {
-            return dateObj;
-        }
-
-        String[] dateSegStrArray = date.split("/");
-        int[] dateSegIntArray = new int[dateSegStrArray.length];
-
-        for (int i = 0; i < dateSegIntArray.length; i++) {
-            dateSegIntArray[i] = Integer.parseInt(dateSegStrArray[i]);
-        }
-
-        switch (dateSegIntArray.length) {
-            case 2:
-                if (isValidDate(dateSegIntArray[0], dateSegIntArray[1])) {
-                    dateObj = LocalDate.of(0, dateSegIntArray[1], dateSegIntArray[0]);
-                }
-                break;
-            case 3:
-                if (isValidDate(dateSegIntArray[0], dateSegIntArray[1], dateSegIntArray[2])) {
-                    dateObj = LocalDate.of(dateSegIntArray[2], dateSegIntArray[1], dateSegIntArray[0]);
-                }
-                break;
-        }
-
-        return dateObj;
+    public static boolean isNullOrBlank(String str) {
+        return str == null || str.isBlank();
     }
 
-    public static boolean isValidEmailFormat(String email) {
-        return email.matches("^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$");
+    public static boolean isNullOrBlank(String[] array) {
+        return array == null || Arrays.stream(array).allMatch(str -> str == null || str.isBlank());
     }
 
-    public static boolean isValidDateFormat(String date) {
-        return date.matches("[0-9]{2}/[0-9]{2}(/[0-9]{4})?");
+
+    static {
+        for (char ch = 'A'; ch <= 'Z'; ch++) {
+            supportedCharacters.add(ch);
+        }
+        for (char ch = 'a'; ch <= 'z'; ch++) {
+            supportedCharacters.add(ch);
+        }
+        for (char ch = '0'; ch <= '9'; ch++) {
+            supportedCharacters.add(ch);
+        }
+        supportedCharacters.add(' ');
+        supportedCharacters.add('~');
+        supportedCharacters.add('!');
+        supportedCharacters.add('@');
+        supportedCharacters.add('#');
+        supportedCharacters.add('$');
+        supportedCharacters.add('%');
+        supportedCharacters.add('^');
+        supportedCharacters.add('&');
+        supportedCharacters.add('*');
+        supportedCharacters.add('(');
+        supportedCharacters.add(')');
+        supportedCharacters.add('_');
+        supportedCharacters.add('+');
+        supportedCharacters.add('-');
+        supportedCharacters.add('=');
+        supportedCharacters.add('`');
+        supportedCharacters.add('{');
+        supportedCharacters.add('}');
+        supportedCharacters.add('|');
+        supportedCharacters.add(';');
+        supportedCharacters.add(':');
+        supportedCharacters.add('\'');
+        supportedCharacters.add('/');
+        supportedCharacters.add('?');
+        supportedCharacters.add('<');
+        supportedCharacters.add('>');
+        supportedCharacters.add(',');
+        supportedCharacters.add('.');
+        supportedCharacters.add('[');
+        supportedCharacters.add(']');
+        supportedCharacters.add('\\');
+        supportedCharacters.add('"');
     }
 }

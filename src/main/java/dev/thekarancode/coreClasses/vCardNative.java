@@ -1,8 +1,13 @@
 package dev.thekarancode.coreClasses;
 
-import java.time.LocalDate;
+import dev.thekarancode.customExceptions.InvalidDateException;
+import dev.thekarancode.customExceptions.InvalidDateFormatException;
+import dev.thekarancode.customExceptions.InvalidEmailFormatException;
+
 import java.util.Arrays;
 import java.util.StringJoiner;
+
+import static dev.thekarancode.utilityClasses.Handyman.*;
 /*
 ┬  ┬┌─┐┌─┐┬─┐┌┬┐┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐
 └┐┌┘│  ├─┤├┬┘ │││││├─┤ │ │└┐┌┘├┤
@@ -60,7 +65,7 @@ public final class vCardNative {
     /**
      * The person's date of birth.
      */
-    private LocalDate dob;
+    private String dob;
 
     /*
         ┌─┐┌─┐┌┬┐┌┬┐┬ ┬┌┐┌┬┌─┐┌─┐┌┬┐┬┌─┐┌┐┌  ┌┬┐┌─┐┌┬┐┌─┐┬┬  ┌─┐
@@ -233,7 +238,7 @@ public final class vCardNative {
      * @param nickName   The nickname of the entity (optional).
      * @param dob        The date of birth of the entity (for persons) or establishment date (for organizations).
      */
-    public void setIdentificationDetails(String prefix, String firstName, String middleName, String lastName, String suffix, String nickName, LocalDate dob) {
+    public void setIdentificationDetails(String prefix, String firstName, String middleName, String lastName, String suffix, String nickName, String dob) throws InvalidDateFormatException, InvalidDateException {
         this.prefix = prefix;
         this.firstName = firstName;
         this.middleName = middleName;
@@ -255,7 +260,7 @@ public final class vCardNative {
      * @param workTelNum    The work telephone number of the entity.
      * @param workEmail     The work email address of the entity.
      */
-    public void setCommunicationDetails(String prefPhNum, String priMobNum, String secMobNum, String homeTelNum, String personalEmail, String workTelNum, String workEmail) {
+    public void setCommunicationDetails(String prefPhNum, String priMobNum, String secMobNum, String homeTelNum, String personalEmail, String workTelNum, String workEmail) throws InvalidEmailFormatException {
         this.prefPhNum = prefPhNum;
         this.priMobNum = priMobNum;
         this.secMobNum = secMobNum;
@@ -413,7 +418,7 @@ public final class vCardNative {
      *
      * @return The date of birth of the entity.
      */
-    public LocalDate getDob() {
+    public String getDob() {
         return dob;
     }
 
@@ -650,6 +655,27 @@ public final class vCardNative {
     */
 
     /**
+     * Checks if the vCardNative instance is empty, meaning that all of its fields are either
+     * null or blank.
+     *
+     * @return {@code true} if all fields of the vCardNative instance are null or blank,
+     *         {@code false} otherwise.
+     */
+    public boolean isEmpty() {
+        return (isNullOrBlank(prefix) && isNullOrBlank(firstName) && isNullOrBlank(middleName) &&
+                isNullOrBlank(lastName) && isNullOrBlank(suffix) && isNullOrBlank(nickName) &&
+                isNullOrBlank(dob) && isNullOrBlank(prefPhNum) && isNullOrBlank(priMobNum) &&
+                isNullOrBlank(secMobNum) && isNullOrBlank(homeTelNum) && isNullOrBlank(personalEmail) &&
+                isNullOrBlank(workTelNum) && isNullOrBlank(workEmail) && isNullOrBlank(homeStreet) &&
+                isNullOrBlank(homeCity) && isNullOrBlank(homeState) && isNullOrBlank(homePostalCode) &&
+                isNullOrBlank(homeCountry) && isNullOrBlank(workStreet) && isNullOrBlank(workCity) &&
+                isNullOrBlank(workState) && isNullOrBlank(workPostalCode) && isNullOrBlank(workCountry) &&
+                isNullOrBlank(role) && isNullOrBlank(title) && isNullOrBlank(department) &&
+                isNullOrBlank(organization) && isNullOrBlank(note) && isNullOrBlank(url) &&
+                isNullOrBlank(labels) && isNullOrBlank(gender));
+    }
+
+    /**
      * Generates a string representation of the entity's details.
      * It includes identification details, communication details,
      * address details, organization details, and additional details.
@@ -738,6 +764,6 @@ public final class vCardNative {
    It prints a message to indicate the creation of the instance.
    */ {
         vCardNativeInstanceCounter++;
-        System.out.println("vCardNative instance $vC4rdN4tiv3#" + vCardNativeInstanceCounter + "->" + this.hashCode()                    );
+        System.out.println("vCardNative instance $vC4rdN4tiv3#" + vCardNativeInstanceCounter + "->" + this.hashCode());
     }
 }

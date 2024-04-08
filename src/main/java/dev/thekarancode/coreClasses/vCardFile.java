@@ -1,5 +1,6 @@
 package dev.thekarancode.coreClasses;
 
+import dev.thekarancode.customExceptions.UnsupportedCharacterException;
 import dev.thekarancode.customExceptions.vCardNotAddedException;
 
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class vCardFile {
         this.vCardList.add(vCard);
     }
 
-    public void crete_vCardFile() throws IOException {
+    public void crete_vCardFile() throws IOException, UnsupportedCharacterException {
         if (vCardList.isEmpty()) {
             throw new vCardNotAddedException("There is no vCard added in the file.");
         }

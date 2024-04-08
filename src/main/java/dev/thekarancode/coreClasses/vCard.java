@@ -1,10 +1,12 @@
 package dev.thekarancode.coreClasses;
 
 
-import dev.thekarancode.utilityClasses.Handyman;
+import dev.thekarancode.customExceptions.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+
+import static dev.thekarancode.utilityClasses.Handyman.*;
 
 /*
 ┬  ┬┌─┐┌─┐┬─┐┌┬┐
@@ -75,7 +77,8 @@ public final class vCard {
      * @param capitalize    Indicates whether to capitalize the composed vCard.
      * @param charsToEscape Characters to escape when composing the vCard.
      */
-    public vCard(vCardNative source_vCard, boolean capitalize, String charsToEscape) {
+    public vCard(vCardNative source_vCard, boolean capitalize, String charsToEscape) throws InvalidDateFormatException, InvalidDateException, InvalidEmailFormatException, vCardEntirelyEmptyException {
+        vCardNativeValidator(source_vCard);
         this.core_vCard = source_vCard;
         this.capitalize = capitalize;
         this.charsToEscape = charsToEscape;
@@ -90,10 +93,8 @@ public final class vCard {
      * @param source_vCard The source {@code vCardNative} object containing contact information.
      * @param capitalize   Indicates whether to capitalize the composed vCard.
      */
-    public vCard(vCardNative source_vCard, boolean capitalize) {
-        this.core_vCard = source_vCard;
-        this.capitalize = capitalize;
-        this.charsToEscape = "\\:;,";
+    public vCard(vCardNative source_vCard, boolean capitalize) throws InvalidDateFormatException, InvalidDateException, InvalidEmailFormatException, vCardEntirelyEmptyException {
+        this(source_vCard, capitalize, "\\:;,");
     }
 
     /**
@@ -104,10 +105,8 @@ public final class vCard {
      *
      * @param source_vCard The source {@code vCardNative} object containing contact information.
      */
-    public vCard(vCardNative source_vCard) {
-        this.core_vCard = source_vCard;
-        this.capitalize = false;
-        this.charsToEscape = "\\:;,";
+    public vCard(vCardNative source_vCard) throws InvalidDateFormatException, InvalidDateException, InvalidEmailFormatException, vCardEntirelyEmptyException {
+        this(source_vCard, false, "\\:;,");
     }
 
     /*
@@ -154,31 +153,31 @@ public final class vCard {
      *
      * @return The composed vCard string adhering to the vCard syntax.
      */
-    public String compose_vCard() {
+    public String compose_vCard() throws UnsupportedCharacterException {
         StringBuilder composed_vCard = new StringBuilder();
         composed_vCard
                 .append("BEGIN:VCARD").append("\n")
                 .append("VERSION:3.0").append("\n")
-                .append(Handyman.foldLine(compose_FN_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_N_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_NICKNAME_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_BDAY_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TELPREF_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TELCELL1_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TELCELL2_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TELHOME_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_EMAILPERSONAL_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TELWORK_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_EMAILWORK_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_ADRHOME_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_ADRWORK_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_TITLE_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_ROLE_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_ORG_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_NOTE_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_URL_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_LABEL_Property(), 75)).append("\n")
-                .append(Handyman.foldLine(compose_GENDER_Property(), 75)).append("\n");
+                .append(foldLine(compose_FN_Property(), 75)).append("\n")
+                .append(foldLine(compose_N_Property(), 75)).append("\n")
+                .append(foldLine(compose_NICKNAME_Property(), 75)).append("\n")
+                .append(foldLine(compose_BDAY_Property(), 75)).append("\n")
+                .append(foldLine(compose_TELPREF_Property(), 75)).append("\n")
+                .append(foldLine(compose_TELCELL1_Property(), 75)).append("\n")
+                .append(foldLine(compose_TELCELL2_Property(), 75)).append("\n")
+                .append(foldLine(compose_TELHOME_Property(), 75)).append("\n")
+                .append(foldLine(compose_EMAILPERSONAL_Property(), 75)).append("\n")
+                .append(foldLine(compose_TELWORK_Property(), 75)).append("\n")
+                .append(foldLine(compose_EMAILWORK_Property(), 75)).append("\n")
+                .append(foldLine(compose_ADRHOME_Property(), 75)).append("\n")
+                .append(foldLine(compose_ADRWORK_Property(), 75)).append("\n")
+                .append(foldLine(compose_TITLE_Property(), 75)).append("\n")
+                .append(foldLine(compose_ROLE_Property(), 75)).append("\n")
+                .append(foldLine(compose_ORG_Property(), 75)).append("\n")
+                .append(foldLine(compose_NOTE_Property(), 75)).append("\n")
+                .append(foldLine(compose_URL_Property(), 75)).append("\n")
+                .append(foldLine(compose_LABEL_Property(), 75)).append("\n")
+                .append(foldLine(compose_GENDER_Property(), 75)).append("\n");
         return composed_vCard.toString();
     }
 
@@ -577,7 +576,7 @@ public final class vCard {
     private String processVal(String inputString) {
         String processedVal;
         if (inputString != null && !inputString.isEmpty()) {
-            processedVal = Handyman.escapeCharacters(Handyman.capitalizeIf(inputString, capitalize), charsToEscape);
+            processedVal = escapeCharacters(capitalizeIf(inputString, capitalize), charsToEscape);
         } else {
             processedVal = "";
         }
@@ -602,6 +601,15 @@ public final class vCard {
             processedVal = "";
         }
         return processedVal;
+    }
+
+    private void vCardNativeValidator(vCardNative vCardNative) throws InvalidDateFormatException, InvalidDateException, InvalidEmailFormatException, vCardEntirelyEmptyException {
+        if (vCardNative.isEmpty()){
+            throw new vCardEntirelyEmptyException("Invalid vCard, Explanation: vCard is entirely empty.");
+        }
+        dateValidator(vCardNative.getDob());
+        emailValidator(vCardNative.getPersonalEmail());
+        emailValidator(vCardNative.getWorkEmail());
     }
 
     /**

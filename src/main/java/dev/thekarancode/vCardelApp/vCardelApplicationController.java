@@ -4,10 +4,12 @@ package dev.thekarancode.vCardelApp;
 import dev.thekarancode.coreClasses.vCard;
 import dev.thekarancode.coreClasses.vCardFile;
 import dev.thekarancode.coreClasses.vCardNative;
-import dev.thekarancode.customExceptions.vCardNotAddedException;
+import dev.thekarancode.customExceptions.*;
 import dev.thekarancode.logUtilityClasses.Log;
 import dev.thekarancode.logUtilityClasses.LogCategory;
-import dev.thekarancode.utilityClasses.Handyman;
+
+import static dev.thekarancode.utilityClasses.Handyman.*;
+
 import dev.thekarancode.utilityClasses.JavaFX_Handyman;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -170,20 +172,27 @@ public class vCardelApplicationController implements Initializable {
     @FXML
     void add_To_vCard_File_Button_MouseClicked(MouseEvent event) {
 
-        vCardNative vCardNative = new vCardNative();
-
-        vCardNative.setIdentificationDetails(prefix.getText(), firstName.getText(), middleName.getText(), lastName.getText(), suffix.getText(), nickname.getText(), Handyman.toLocaleDateObj(dob.getText()));
-        vCardNative.setCommunicationDetails(preferredMobileNumber.getText(), mobileNumberI.getText(), mobileNumberII.getText(), homeTelephoneNumber.getText(), personalEmailAddress.getText(), workTelephoneNumber.getText(), workEmailAddress.getText());
-        vCardNative.setAddressDetails(homeStreetAddress.getText(), homeCity.getText(), homeState.getText(), homePostalCode.getText(), homeCountry.getText(), workStreetAddress.getText(), workCity.getText(), workState.getText(), workPostalCode.getText(), workCountry.getText());
-        vCardNative.setOrganizationDetails(role.getText(), title.getText(), department.getText(), organization.getText());
-        vCardNative.setNote(note.getText());
-        vCardNative.setUrl(website.getText());
-        vCardNative.setLabels(labels.getText().split(","));
-        vCardNative.setGender(gender.getText());
-
-        vCardFile.add_vCard(new vCard(vCardNative));
-
-        logger.log(new Log(LogCategory.INFO, "vCard added to vCard File Successfully.", ""));
+        try {
+            vCardFile.add_vCard(new vCard(construct_vCardNative()));
+            logger.log(new Log(LogCategory.INFO, "vCard added to vCard File Successfully.", ""));
+        } catch (InvalidDateFormatException e) {
+            dob.clear();
+            logger.log(new Log(LogCategory.ERROR, e.getMessage(), ""));
+        } catch (InvalidDateException e) {
+            dob.clear();
+            logger.log(new Log(LogCategory.WARNING, e.getMessage(), ""));
+        } catch (InvalidEmailFormatException e) {
+            if (e.getInvalidEmail().equals(personalEmailAddress.getText())) {
+                personalEmailAddress.clear();
+            } else {
+                workEmailAddress.clear();
+            }
+            logger.log(new Log(LogCategory.WARNING, e.getMessage(), ""));
+        } catch (vCardEntirelyEmptyException e) {
+            logger.log(new Log(LogCategory.WARNING, e.getMessage(), ""));
+        } catch (Exception e) {
+            logger.log(new Log(LogCategory.ERROR, "Unexpected error occurred: " + e.getMessage(), e.toString()));
+        }
     }
 
     @FXML
@@ -226,7 +235,7 @@ public class vCardelApplicationController implements Initializable {
             vCardFile.crete_vCardFile();
             String successMessage = "Successfully created file at: " + vCardFile.getFileDirectory() + " with file name: \"" + vCardFile.getFileName() + "\"";
             logger.log(new Log(LogCategory.INFO, successMessage, ""));
-        } catch (IOException | vCardNotAddedException e) {
+        } catch (IOException | vCardNotAddedException | UnsupportedCharacterException e) {
             String errorMessage = "Error occurred during file creation: " + e.getMessage();
             logger.log(new Log(LogCategory.ERROR, errorMessage, e.toString()));
         }
@@ -345,32 +354,14 @@ public class vCardelApplicationController implements Initializable {
             String textFieldValue = textField.getText();
 
             if (!newVal && !textFieldValue.isBlank()) {
-
-                if (Handyman.isValidDateFormat(textFieldValue)) {
-
-                    String[] dobSegStrArray = textFieldValue.split("/");
-                    int[] dobSegIntArray = new int[dobSegStrArray.length];
-
-                    for (int i = 0; i < dobSegIntArray.length; i++) {
-                        dobSegIntArray[i] = Integer.parseInt(dobSegStrArray[i]);
-                    }
-
-                    boolean isValidDate = switch (dobSegIntArray.length) {
-                        case 2 -> Handyman.isValidDate(dobSegIntArray[0], dobSegIntArray[1]);
-                        case 3 -> Handyman.isValidDate(dobSegIntArray[0], dobSegIntArray[1], dobSegIntArray[2]);
-                        default -> false;
-                    };
-
-                    if (isValidDate) {
-                        logger.log(new Log(LogCategory.INFO, (textFieldValue + " is a valid date."), ""));
-                    } else {
-                        textField.clear();
-                        logger.log(new Log(LogCategory.WARNING, (textFieldValue + " is not a valid date."), ""));
-                    }
-
-                } else {
+                try {
+                    dateValidator(textFieldValue);
+                } catch (InvalidDateFormatException e) {
                     textField.clear();
-                    logger.log(new Log(LogCategory.ERROR, (textFieldValue + " is not a valid date format."), ""));
+                    logger.log(new Log(LogCategory.ERROR, e.getMessage(), ""));
+                } catch (InvalidDateException e) {
+                    textField.clear();
+                    logger.log(new Log(LogCategory.WARNING, e.getMessage(), ""));
                 }
             }
         });
@@ -383,12 +374,11 @@ public class vCardelApplicationController implements Initializable {
             String textFieldValue = textField.getText();
 
             if (!newVal && !textFieldValue.isBlank()) {
-
-                if (Handyman.isValidEmailFormat(textFieldValue)) {
-                    logger.log(new Log(LogCategory.INFO, textFieldValue + " is a valid email format.", ""));
-                } else {
+                try {
+                    emailValidator(textFieldValue);
+                } catch (InvalidEmailFormatException e) {
                     textField.clear();
-                    logger.log(new Log(LogCategory.ERROR, textFieldValue + " is not a valid email format.", ""));
+                    logger.log(new Log(LogCategory.WARNING, e.getMessage(), ""));
                 }
             }
         });
@@ -410,5 +400,26 @@ public class vCardelApplicationController implements Initializable {
         });
         System.out.println("Task completed, Focused property listener have been added for file Name : Text Field ID - " + textField.getId());
     }
+
+
+    /*
+    ┬ ┬┌┬┐┬┬  ┬┌┬┐┬ ┬  ┌┬┐┌─┐┌┬┐┬ ┬┌─┐┌┬┐┌─┐
+    │ │ │ ││  │ │ └┬┘  │││├┤  │ ├─┤│ │ ││└─┐
+    └─┘ ┴ ┴┴─┘┴ ┴  ┴   ┴ ┴└─┘ ┴ ┴ ┴└─┘─┴┘└─┘
+    UTILITY METHODS
+    */
+    private vCardNative construct_vCardNative() throws InvalidDateFormatException, InvalidDateException, InvalidEmailFormatException {
+        vCardNative vCardNative = new vCardNative();
+        vCardNative.setIdentificationDetails(prefix.getText(), firstName.getText(), middleName.getText(), lastName.getText(), suffix.getText(), nickname.getText(), dob.getText());
+        vCardNative.setCommunicationDetails(preferredMobileNumber.getText(), mobileNumberI.getText(), mobileNumberII.getText(), homeTelephoneNumber.getText(), personalEmailAddress.getText(), workTelephoneNumber.getText(), workEmailAddress.getText());
+        vCardNative.setAddressDetails(homeStreetAddress.getText(), homeCity.getText(), homeState.getText(), homePostalCode.getText(), homeCountry.getText(), workStreetAddress.getText(), workCity.getText(), workState.getText(), workPostalCode.getText(), workCountry.getText());
+        vCardNative.setOrganizationDetails(role.getText(), title.getText(), department.getText(), organization.getText());
+        vCardNative.setNote(note.getText());
+        vCardNative.setUrl(website.getText());
+        vCardNative.setLabels(labels.getText().split(","));
+        vCardNative.setGender(gender.getText());
+        return vCardNative;
+    }
+
 
 }
